@@ -1,0 +1,28 @@
+version: '3'
+services:
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - LANGUAGE_MODEL
+    volumes:
+      - /home/wware/ai-tinkerers/ollama_data:/root/.ollama
+      - ${OLLAMA_MODELS:-/home/wware/ai-tinkerers/models}:/models
+    command: serve
+  jupyter:
+    image: jupyter/scipy-notebook:latest
+    volumes:
+      - .:/home/jovyan
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=123
+      - LANGUAGE_MODEL
+      - OLLAMA_HOST
+    ports:
+      - "8888:8888"
+    depends_on:
+      - ollama
+
+volumes:
+  ollama_data:
