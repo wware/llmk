@@ -20,12 +20,6 @@ docker run -it --rm \
 docker compose up -d
 ```
 
-## Running the LLM in a docker compose
-
-```bash
-docker compose up -d
-```
-
 ## Usage
 
 ```python

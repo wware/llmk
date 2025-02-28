@@ -2,7 +2,17 @@ import os
 import json
 import time
 import requests
+import ipynbname
 from IPython.display import display, Javascript, Markdown
+
+
+def get_cell_index(nb):
+    current_cell_source = get_ipython().user_ns['In'][-1]
+    for i, cell in enumerate(nb['cells']):
+        if "".join(cell['source']) == current_cell_source:
+            return i + 1
+    return None
+
 
 def llm_chat(query):
     """Save notebook, read contents, and process with LLM"""
@@ -13,13 +23,14 @@ def llm_chat(query):
         "new KeyboardEvent('keydown', {key:'s', keyCode: 83, ctrlKey: true}"
         "))"
     ))
-    
-    notebook_name = os.environ.get("JPY_SESSION_NAME")
+
+    notebook_name = ipynbname.path()
     with open(notebook_name) as f:
         notebook = json.load(f)
+    cells = notebook['cells'][:get_cell_index(notebook)]
 
     code_cells = []
-    for cell in notebook['cells']:
+    for cell in cells:
         source = ''.join(cell['source'])
         if cell['cell_type'] == 'code':
             code_cells.append("```")
@@ -27,11 +38,8 @@ def llm_chat(query):
             code_cells.append("```")
         else:
             code_cells.append(source)
-
-    query += "\n\n\nContext:\n\n" + "\n".join(code_cells)
     
     full_query = query + "\n\nContext:\n\n" + "\n".join(code_cells)
-    
     ollama_host = os.environ.get("OLLAMA_HOST")
     model = os.environ.get("LANGUAGE_MODEL")
     
